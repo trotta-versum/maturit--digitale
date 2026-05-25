@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analisi Maturità Digitale — PICS²</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;900&family=Inter:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── TOKENS — warm, desaturated, premium ── */
+:root {
+  --blue:       #0B0B8C;
+  --blue-soft:  #1A1AE0;
+  --lime:       #BFEF2A;
+  --ink:        #1C1C1C;       /* not pure black */
+  --ink-mid:    #4A4A4A;
+  --ink-soft:   #767676;
+  --ink-light:  #A0A0A0;
+  --paper:      #F7F5F2;       /* warm white — not pure */
+  --paper-mid:  #F0EDE8;
+  --white:      #FFFFFF;
+  --border:     rgba(28,28,28,0.08);
+  --ease:       cubic-bezier(0.16,1,0.3,1);
+  --ease-in:    cubic-bezier(0.4,0,1,1);
+}
+
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── REVEAL on scroll ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 1.1s var(--ease), transform 1.1s var(--ease);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.d1 { transition-delay: 0.10s; }
+.d2 { transition-delay: 0.22s; }
+.d3 { transition-delay: 0.34s; }
+
+/* ── NAV — glassmorphism ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 3.5rem; height: 64px;
+  background: rgba(247,245,242,0.75);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border-bottom: 1px solid rgba(255,255,255,0.6);
+  transition: background 0.5s var(--ease), box-shadow 0.5s;
+}
+nav.scrolled {
+  background: rgba(247,245,242,0.95);
+  box-shadow: 0 1px 0 rgba(28,28,28,0.08), 0 8px 32px rgba(0,0,0,0.06);
+}
+.nav-logo {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: 1.05rem; color: var(--ink); letter-spacing: -0.02em;
+}
+.nav-logo span { color: var(--blue); }
+.nav-cta {
+  background: var(--blue); color: #fff;
+  font-size: 0.78rem; font-weight: 500;
+  padding: 0.55rem 1.4rem; border: none; border-radius: 100px;
+  cursor: pointer; text-decoration: none; letter-spacing: 0.03em;
+  transition: background 0.3s, transform 0.4s var(--ease), box-shadow 0.4s;
+  box-shadow: 0 4px 14px rgba(11,11,140,0.22);
+}
+.nav-cta:hover {
+  background: var(--blue-soft);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(11,11,140,0.28);
+}
+
+/* ── HERO — cinematic 5-layer system ── */
+.hero {
+  position: relative;
+  height: 100vh; min-height: 640px;
+  display: flex; align-items: flex-end;
+  overflow: hidden;
+}
+
+/* Layer 1 — video, slowest possible zoom */
+.hero-video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; z-index: 0;
+  transform-origin: center center;
+  animation: hZoom 32s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes hZoom {
+  from { transform: scale(1.00); }
+  to   { transform: scale(1.08); }
+}
+
+/* Layer 2a — veil: very soft dark film top→bottom */
+.hero-veil {
+  position: absolute; inset: 0; z-index: 1;
+  background: rgba(8, 8, 18, 0.28);
+}
+
+/* Layer 2b — cinematic gradient: strong bottom, fade top */
+.hero-gradient {
+  position: absolute; inset: 0; z-index: 2;
+  background:
+    linear-gradient(
+      to top,
+      rgba(4, 4, 14, 0.92) 0%,
+      rgba(4, 4, 14, 0.55) 30%,
+      rgba(4, 4, 14, 0.18) 60%,
+      transparent 100%
+    );
+}
+
+/* Layer 2c — subtle blue atmosphere left side */
+.hero-atm {
+  position: absolute; inset: 0; z-index: 3;
+  background:
+    radial-gradient(ellipse 55% 70% at 0% 100%, rgba(11,11,140,0.22) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* Layer 3 — main content */
+.hero-content {
+  position: relative; z-index: 10;
+  padding: 0 5.5rem 5.5rem;
+  width: 100%; max-width: 900px;
+}
+
+/* Huge title */
+.hero-title {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(3.4rem, 7.5vw, 6rem);
+  line-height: 0.96; letter-spacing: -0.045em;
+  color: #fff; margin-bottom: 2.5rem;
+  opacity: 0; animation: fadeSlide 1.2s 0.3s var(--ease) forwards;
+}
+.hero-title .lime { color: var(--lime); }
+
+/* Micro sub — almost poetic */
+.hero-micro {
+  font-size: 0.88rem; font-weight: 300;
+  color: rgba(255,255,255,0.50);
+  margin-bottom: 3rem; line-height: 1.8;
+  max-width: 360px; letter-spacing: 0.01em;
+  opacity: 0; animation: fadeSlide 1.2s 0.65s var(--ease) forwards;
+}
+.hero-micro strong { color: rgba(255,255,255,0.85); font-weight: 400; }
+
+/* Single CTA */
+.hero-cta-wrap {
+  display: flex; align-items: center; gap: 2.5rem;
+  opacity: 0; animation: fadeSlide 1.2s 1.0s var(--ease) forwards;
+}
+.hero-cta {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: transparent;
+  color: #fff;
+  font-family: 'Montserrat', sans-serif; font-size: 0.82rem; font-weight: 600;
+  padding: 0.9rem 2rem; border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 100px; cursor: pointer; text-decoration: none;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: rgba(255,255,255,0.07);
+  transition: border-color 0.5s var(--ease), background 0.5s var(--ease),
+              transform 0.5s var(--ease), box-shadow 0.5s;
+}
+.hero-cta:hover {
+  border-color: var(--lime);
+  background: rgba(191,239,42,0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(191,239,42,0.20);
+  color: var(--lime);
+}
+.hero-cta .arr { transition: transform 0.5s var(--ease); display: inline-block; opacity: 0.7; }
+.hero-cta:hover .arr { transform: translateX(5px); opacity: 1; }
+
+/* Micro badges */
+.hero-badges {
+  font-size: 0.68rem; color: rgba(255,255,255,0.28);
+  letter-spacing: 0.06em; line-height: 2;
+}
+.hero-badges span { color: rgba(191,239,42,0.60); margin-right: 2px; }
+
+/* Layer 5 — scroll indicator bottom-right */
+.hero-scroll {
+  position: absolute; bottom: 2.5rem; right: 5.5rem; z-index: 10;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  opacity: 0; animation: fadeSlide 1.2s 1.5s var(--ease) forwards;
+}
+.hero-scroll-line {
+  width: 1px; height: 48px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.25));
+  animation: scrollPulse 2.4s ease-in-out infinite;
+}
+@keyframes scrollPulse {
+  0%,100% { opacity: 0.3; transform: scaleY(0.6); transform-origin: top; }
+  50%      { opacity: 1;   transform: scaleY(1);   transform-origin: top; }
+}
+.hero-scroll-label {
+  font-size: 0.58rem; color: rgba(255,255,255,0.25);
+  letter-spacing: 0.18em; text-transform: uppercase;
+  writing-mode: vertical-rl;
+}
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── STAT STRIP — pause visiva ── */
+.stat-strip {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+}
+.stat-item {
+  padding: 3.5rem;
+  border-right: 1px solid var(--border);
+  transition: background 0.5s var(--ease);
+  cursor: default;
+}
+.stat-item:last-child { border-right: none; }
+.stat-item:hover { background: #F3F1FE; }
+.stat-num {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: 2.8rem; letter-spacing: -0.05em;
+  color: var(--blue); line-height: 1;
+  margin-bottom: 0.75rem;
+  transition: transform 0.5s var(--ease);
+}
+.stat-item:hover .stat-num { transform: translateX(4px); }
+.stat-label { font-size: 0.85rem; color: var(--ink-mid); line-height: 1.55; font-weight: 300; }
+.stat-source { font-size: 0.62rem; color: var(--ink-light); margin-top: 8px; letter-spacing: 0.02em; }
+
+/* ── DIVIDERS ── */
+.div-blue { height: 1px; background: linear-gradient(to right, transparent, rgba(11,11,140,0.14), transparent); }
+.div-lime  { height: 1px; background: linear-gradient(to right, transparent, rgba(191,239,42,0.45), transparent); }
+
+/* ── SECTION SPACING — cinematic whitespace ── */
+.sec { padding: 8rem 5rem; }
+.sec-inner { max-width: 1000px; margin: 0 auto; }
+.sec-bg-paper { background: var(--paper); }
+.sec-bg-white { background: var(--white); }
+.sec-bg-pale  { background: var(--paper-mid); }
+
+/* ── TYPOGRAPHY SYSTEM ── */
+.eyebrow {
+  font-size: 0.65rem; font-weight: 500; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--ink-light);
+  margin-bottom: 1.25rem; display: block;
+}
+.h2 {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(2.2rem, 4vw, 3.4rem); letter-spacing: -0.03em;
+  color: var(--ink); line-height: 1.05;
+  margin-bottom: 4.5rem;
+}
+.h2 em { font-style: normal; color: var(--blue); }
+
+/* ── GEO LABELS ── */
+.geo-label {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: 1rem; letter-spacing: -0.01em; color: var(--ink);
+  margin-bottom: 1.25rem;
+  display: flex; align-items: center; gap: 10px;
+}
+.geo-bar { width: 24px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── BENCH CARDS ── */
+.bench-row { margin-bottom: 3.5rem; }
+.bench-grid {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 1px; background: var(--border);
+  border-radius: 14px; overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+}
+.bench-card {
+  background: var(--white); padding: 2rem;
+  transition: background 0.4s, transform 0.5s var(--ease), box-shadow 0.5s;
+}
+.bench-card:hover {
+  background: #FAFAFE;
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.09);
+  position: relative; z-index: 2;
+}
+.card-ico { width: 40px; height: 40px; margin-bottom: 1.25rem; }
+.card-num {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: 1.9rem; letter-spacing: -0.04em; line-height: 1;
+  margin-bottom: 6px;
+}
+.card-name { font-size: 0.8rem; font-weight: 500; color: var(--ink); margin-bottom: 5px; }
+.card-desc { font-size: 0.77rem; color: var(--ink-soft); line-height: 1.55; font-weight: 300; }
+.card-src  { font-size: 0.60rem; color: var(--ink-light); margin-top: 10px; letter-spacing: 0.02em; }
+
+/* Puglia subtle tint */
+.bench-puglia { background: rgba(191,239,42,0.05); }
+.bench-puglia .bench-card { background: transparent; }
+.bench-puglia .bench-card:hover { background: rgba(191,239,42,0.06); }
+
+/* ── PAUSE QUOTE — breathing moment ── */
+.pause-quote {
+  padding: 8rem 5rem;
+  text-align: center;
+  background: var(--blue);
+  position: relative; overflow: hidden;
+}
+.pause-quote::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 80% at 20% 50%, rgba(191,239,42,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 80% 30%, rgba(255,255,255,0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+.quote-text {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(1.8rem, 4vw, 3.2rem); letter-spacing: -0.03em;
+  color: #fff; line-height: 1.15; margin-bottom: 1.5rem;
+  position: relative; z-index: 1;
+  max-width: 700px; margin-left: auto; margin-right: auto;
+}
+.quote-text span { color: var(--lime); }
+.quote-sub {
+  font-size: 0.85rem; font-weight: 300;
+  color: rgba(255,255,255,0.50);
+  letter-spacing: 0.04em;
+  position: relative; z-index: 1;
+  margin-bottom: 1.5rem;
+}
+.quote-num {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: 5rem; letter-spacing: -0.06em;
+  color: rgba(255,255,255,0.08);
+  position: absolute; bottom: 1rem; right: 3rem;
+  line-height: 1; pointer-events: none; z-index: 0;
+}
+
+/* ── BENEFITS ── */
+.benefit-grid {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 1px; background: var(--border);
+  border-radius: 14px; overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+}
+.benefit-card {
+  background: var(--white); padding: 2.2rem;
+  transition: background 0.4s, transform 0.5s var(--ease), box-shadow 0.5s;
+}
+.benefit-card:hover {
+  background: #F5F4FF;
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+  position: relative; z-index: 2;
+}
+.benefit-num {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: 1.6rem; letter-spacing: -0.02em;
+  margin-bottom: 1rem; line-height: 1;
+}
+.benefit-card:nth-child(odd)  .benefit-num { color: var(--blue); }
+.benefit-card:nth-child(even) .benefit-num { color: #7A9900; }
+.benefit-title { font-size: 0.92rem; font-weight: 500; color: var(--ink); margin-bottom: 6px; }
+.benefit-desc  { font-size: 0.8rem; color: var(--ink-soft); line-height: 1.65; font-weight: 300; }
+
+/* ── HOW — circular ── */
+.how-grid {
+  display: grid; grid-template-columns: 1fr 260px 1fr;
+  align-items: center; gap: 3.5rem;
+  max-width: 880px; margin: 0 auto;
+}
+.step-dot {
+  width: 50px; height: 50px; border-radius: 50%;
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: 0.95rem; display: flex; align-items: center;
+  justify-content: center; margin-bottom: 1rem;
+  transition: transform 0.5s var(--ease), box-shadow 0.5s;
+}
+.step-dot:hover { transform: scale(1.12); }
+.dot-blue { background: var(--blue); color: #fff; box-shadow: 0 4px 14px rgba(11,11,140,0.25); }
+.dot-lime  { background: var(--lime); color: var(--ink); box-shadow: 0 4px 14px rgba(191,239,42,0.40); }
+.step-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.92rem; color: var(--ink); margin-bottom: 6px; }
+.step-desc  { font-size: 0.8rem; color: var(--ink-soft); line-height: 1.7; font-weight: 300; }
+
+/* ── CTA — minimal, atmospheric ── */
+.cta-sec {
+  padding: 10rem 5rem; text-align: center;
+  background:
+    radial-gradient(ellipse 65% 55% at 25% 45%, rgba(11,11,140,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 65% at 78% 65%, rgba(191,239,42,0.06) 0%, transparent 70%),
+    var(--paper);
+}
+.cta-title {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: clamp(2.5rem, 5.5vw, 4.5rem); letter-spacing: -0.04em;
+  color: var(--ink); line-height: 0.98; margin-bottom: 1.5rem;
+}
+.cta-title em { font-style: normal; color: var(--blue); }
+.cta-micro {
+  font-size: 0.92rem; font-weight: 300; color: var(--ink-soft);
+  margin-bottom: 3rem; letter-spacing: 0.01em;
+}
+.cta-checks {
+  display: flex; justify-content: center;
+  gap: 2.5rem; flex-wrap: wrap; margin-bottom: 3.5rem;
+}
+.cta-check {
+  font-size: 0.78rem; color: var(--ink-soft);
+  display: flex; align-items: center; gap: 7px; font-weight: 300;
+}
+.cta-check::before { content: "✓"; font-weight: 700; color: var(--lime); font-size: 0.7rem; }
+.cta-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--blue); color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9rem; font-weight: 700;
+  padding: 1.1rem 2.8rem; border: none; border-radius: 100px;
+  cursor: pointer; text-decoration: none; letter-spacing: 0.02em;
+  transition: background 0.3s, transform 0.5s var(--ease), box-shadow 0.5s;
+  box-shadow: 0 8px 28px rgba(11,11,140,0.22);
+}
+.cta-btn:hover {
+  background: var(--blue-soft);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 16px 48px rgba(11,11,140,0.28);
+}
+.cta-reassure { margin-top: 1.5rem; font-size: 0.7rem; color: var(--ink-light); letter-spacing: 0.05em; }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 2rem 5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap;
+  background: var(--white);
+}
+footer p { font-size: 0.68rem; color: var(--ink-light); line-height: 1.6; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .hero-content { padding: 0 2rem 4rem; }
+  .stat-strip, .bench-grid, .benefit-grid { grid-template-columns: 1fr; }
+  .stat-item { border-right: none; border-bottom: 1px solid var(--border); }
+  .sec { padding: 5rem 2rem; }
+  .pause-quote { padding: 5rem 2rem; }
+  .cta-sec { padding: 6rem 2rem; }
+  footer { padding: 2rem; }
+  .how-grid { grid-template-columns: 1fr !important; }
+  .how-circ { display: none !important; }
+  .cta-checks { flex-direction: column; align-items: center; gap: 1rem; }
+  nav { padding: 0 1.5rem; }
+}
+
+/* ── CAROUSEL ── */
+.car-nav {
+  display: flex; gap: 0; margin-bottom: 0;
+  border-bottom: 1px solid var(--border);
+  margin-left: -5rem; margin-right: -5rem;
+  padding: 0 5rem;
+}
+.car-tab {
+  background: none; border: none; cursor: pointer;
+  font-family: 'Inter', sans-serif; font-size: 0.78rem;
+  font-weight: 400; color: var(--ink-light);
+  padding: 1rem 1.25rem 0.9rem;
+  border-bottom: 2px solid transparent;
+  transition: color 0.35s, border-color 0.35s;
+  letter-spacing: 0.02em;
+  display: flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+}
+.car-tab:hover { color: var(--ink); }
+.car-tab.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 500; }
+.car-tab span { display: inline; }
+
+/* STAGE */
+.car-stage {
+  position: relative;
+  overflow: hidden;
+  padding: 4rem 5rem 2rem;
+}
+
+/* SLIDE — position-based, no display toggling */
+.car-stage {
+  position: relative;
+  overflow: hidden;
+  padding: 4rem 5rem 2rem;
+}
+.car-slide {
+  position: absolute;
+  top: 4rem; left: 5rem; right: 5rem;
+  opacity: 0;
+  transform: translateX(48px);
+  pointer-events: none;
+  transition: opacity 0.65s var(--ease), transform 0.65s var(--ease);
+  will-change: opacity, transform;
+}
+.car-slide.active {
+  position: relative;
+  top: auto; left: auto; right: auto;
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+.car-slide.exit-left {
+  position: absolute;
+  top: 4rem; left: 5rem; right: 5rem;
+  opacity: 0;
+  transform: translateX(-48px);
+  pointer-events: none;
+  transition: opacity 0.50s var(--ease-in), transform 0.50s var(--ease-in);
+}
+
+/* DECK — stacked cards effect */
+.car-deck {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.8) inset,
+    0 4px 24px rgba(0,0,0,0.06),
+    0 16px 48px rgba(0,0,0,0.04);
+}
+
+/* Individual card */
+.car-card {
+  background: var(--card-bg, var(--white));
+  padding: 2.2rem 2rem;
+  transition: background 0.5s, transform 0.6s var(--ease), box-shadow 0.6s;
+  cursor: default;
+}
+.car-card:hover {
+  background: #FAFAFE;
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.10);
+  position: relative; z-index: 3;
+}
+
+.cc-ico { 
+  margin-bottom: 1.5rem;
+  opacity: 0.85;
+  transition: opacity 0.4s, transform 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+.car-card:hover .cc-ico { opacity: 1; transform: translateY(-2px); }
+.cc-num {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: 2.1rem; letter-spacing: -0.04em;
+  line-height: 1; margin-bottom: 0.5rem;
+}
+.cc-name {
+  font-size: 0.85rem; font-weight: 500; color: var(--ink);
+  line-height: 1.3; margin-bottom: 0.75rem;
+}
+.cc-name span { font-weight: 300; color: var(--ink-soft); font-size: 0.78rem; display: block; margin-top: 2px; }
+.cc-desc { font-size: 0.77rem; color: var(--ink-soft); line-height: 1.6; font-weight: 300; margin-bottom: 1rem; }
+.cc-src  { font-size: 0.60rem; color: var(--ink-light); letter-spacing: 0.02em; }
+
+/* FOOTER — editorial pagination */
+.car-footer {
+  display: flex; align-items: center; gap: 2rem;
+  padding: 1.5rem 5rem 4rem;
+}
+.car-counter {
+  font-family: 'Montserrat', sans-serif; font-weight: 500;
+  font-size: 0.78rem; letter-spacing: 0.08em; color: var(--ink-mid);
+  min-width: 60px; white-space: nowrap;
+}
+.car-sep { color: var(--ink-light); margin: 0 4px; }
+.car-tot { color: var(--ink-light); }
+.car-progress {
+  flex: 1; height: 1px; background: var(--border);
+  border-radius: 1px; overflow: hidden;
+}
+.car-bar {
+  height: 100%; background: var(--blue);
+  border-radius: 1px;
+  width: 25%;
+  transition: width 0.7s var(--ease);
+}
+.car-arrows { display: flex; gap: 8px; }
+.car-arrow {
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 1px solid var(--border); background: var(--white);
+  font-size: 1rem; color: var(--ink-mid); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.3s, color 0.3s, transform 0.4s var(--ease), box-shadow 0.4s;
+}
+.car-arrow:hover {
+  background: var(--blue); color: var(--white);
+  transform: scale(1.08);
+  box-shadow: 0 4px 14px rgba(11,11,140,0.20);
+}
+.car-arrow:disabled { opacity: 0.25; pointer-events: none; }
+
+@media (max-width: 900px) {
+  .car-deck { grid-template-columns: 1fr; }
+  .car-stage { padding: 3rem 2rem 1rem; }
+  .car-footer { padding: 1rem 2rem 3rem; gap: 1rem; }
+  .car-nav { margin-left: -2rem; margin-right: -2rem; padding: 0 2rem; overflow-x: auto; }
+  .car-tab span { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-logo">PICS<span>²</span></div>
+  <a href="https://versumdesign.it/digital-maturity-test" class="nav-cta">Inizia gratis</a>
+</nav>
+
+<!-- HERO — cinematic 5-layer -->
+<section class="hero">
+
+  <!-- L1: video -->
+  <video class="hero-video" autoplay muted loop playsinline preload="auto">
+    <source src="Firefly_838000__2_.mp4" type="video/mp4">
+  </video>
+
+  <!-- L2a: veil -->
+  <div class="hero-veil"></div>
+
+  <!-- L2b: cinematic gradient -->
+  <div class="hero-gradient"></div>
+
+  <!-- L2c: blue atmosphere -->
+  <div class="hero-atm"></div>
+
+  <!-- L3: title + microtesto + CTA -->
+  <div class="hero-content">
+    <h1 class="hero-title">
+      Senza dati,<br>
+      la crescita esiste.<br>
+      <span class="lime">Solo non la vedi.</span>
+    </h1>
+    <p class="hero-micro">
+      Le aziende digitalmente mature generano <strong>152% in più</strong>
+      di fatturato per addetto.
+    </p>
+    <div class="hero-cta-wrap">
+      <a href="https://versumdesign.it/digital-maturity-test" class="hero-cta">
+        Scopri il tuo score <span class="arr">→</span>
+      </a>
+      <div class="hero-badges">
+        <span>✓</span> Gratuito &nbsp;·&nbsp;
+        <span>✓</span> 3 minuti &nbsp;·&nbsp;
+        <span>✓</span> Nessuna registrazione
+      </div>
+    </div>
+  </div>
+
+  <!-- L5: scroll indicator -->
+  <div class="hero-scroll">
+    <div class="hero-scroll-line"></div>
+    <div class="hero-scroll-label">scroll</div>
+  </div>
+
+</section>
+
+<!-- STAT STRIP — breathing pause -->
+<div class="stat-strip">
+  <div class="stat-item reveal">
+    <div class="stat-num">58,8 Mld€</div>
+    <div class="stat-label">e-commerce B2C Italia nel 2024, +6% sull'anno precedente</div>
+    <div class="stat-source">Osservatorio eCommerce B2c Netcomm – Politecnico di Milano, 2024</div>
+  </div>
+  <div class="stat-item reveal d1">
+    <div class="stat-num">60,7%</div>
+    <div class="stat-label">delle PMI italiane con base digitale — sopra la media UE del 57,7%</div>
+    <div class="stat-source">DESI 2024 / Eurostat</div>
+  </div>
+  <div class="stat-item reveal d2">
+    <div class="stat-num">solo 19%</div>
+    <div class="stat-label">adotta tecnologie avanzate in modo strutturato. Il gap è ancora enorme.</div>
+    <div class="stat-source">Osservatorio Innovazione Digitale PMI, PoliMI 2024-25</div>
+  </div>
+</div>
+
+<div class="div-blue"></div>
+
+<!-- BENCHMARKS — STACKED CARD CAROUSEL -->
+<section class="sec sec-bg-paper" style="padding-bottom:0;">
+  <div class="sec-inner">
+    <span class="eyebrow reveal">Benchmark globali 2025–2026</span>
+    <h2 class="h2 reveal" style="margin-bottom:1rem;">Chi investe nel digitale<br><em>cresce.</em></h2>
+    <!-- editorial progress nav -->
+    <div class="car-nav reveal" id="carNav">
+      <button class="car-tab active" data-idx="0">🇺🇸 <span>Stati Uniti</span></button>
+      <button class="car-tab" data-idx="1">🇨🇳 <span>Cina</span></button>
+      <button class="car-tab" data-idx="2">🇮🇹 <span>Made in Italy</span></button>
+      <button class="car-tab" data-idx="3">🌿 <span>Puglia</span></button>
+    </div>
+  </div>
+
+  <!-- CAROUSEL STAGE — full bleed -->
+  <div class="car-stage" id="carStage">
+
+    <!-- SLIDE 0: USA -->
+    <div class="car-slide active" data-slide="0">
+      <div class="car-deck">
+        <div class="car-card" style="--ci:0">
+          <div class="cc-ico" style="color:#0B0B8C"><svg width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="#0B0B8C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="7" width="32" height="8" rx="2"/><rect x="4" y="18" width="32" height="8" rx="2"/><rect x="4" y="29" width="32" height="8" rx="2"/><circle cx="31" cy="11" r="1.5" fill="#0B0B8C" stroke="none"/><circle cx="31" cy="22" r="1.5" fill="#0B0B8C" stroke="none"/><circle cx="31" cy="33" r="1.5" fill="#0B0B8C" stroke="none"/></svg></div>
+          <div class="cc-num" style="color:var(--blue)">+40%</div>
+          <div class="cc-name">Microsoft Azure<br><span>Cloud & AI</span></div>
+          <div class="cc-desc">Crescita ricavi cloud YoY nel Q3 FY2026, trainata dall'AI. Il cloud Microsoft supera i 50 miliardi $ a trimestre.</div>
+          <div class="cc-src">Microsoft SEC 8-K, Q3 FY2026</div>
+        </div>
+        <div class="car-card" style="--ci:1">
+          <div class="cc-ico" style="color:#BFEF2A"><svg width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="#8BAF00" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="15" width="24" height="19" rx="3"/><rect x="14" y="8" width="12" height="8" rx="2"/><circle cx="15" cy="25" r="2.5"/><circle cx="25" cy="25" r="2.5"/><line x1="15" y1="30" x2="25" y2="30"/><line x1="20" y1="8" x2="20" y2="5"/><circle cx="20" cy="4" r="1.5" fill="#8BAF00" stroke="none"/></svg></div>
+          <div class="cc-num" style="color:var(--ink)">+63%</div>
+          <div class="cc-name">Google Cloud<br><span>AI Generativa</span></div>
+          <div class="cc-desc">Crescita ricavi Q1 2026 a 20 miliardi $. Il tasso più alto dalla nascita del servizio cloud.</div>
+          <div class="cc-src">Alphabet Q1 2026 Earnings / CNBC</div>
+        </div>
+        <div class="car-card" style="--ci:2">
+          <div class="cc-ico" style="color:#0B0B8C"><svg width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="#0B0B8C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><rect x="13" y="13" width="14" height="14" rx="2"/><line x1="8" y1="17" x2="13" y2="17"/><line x1="8" y1="23" x2="13" y2="23"/><line x1="27" y1="17" x2="32" y2="17"/><line x1="27" y1="23" x2="32" y2="23"/><line x1="17" y1="8" x2="17" y2="13"/><line x1="23" y1="8" x2="23" y2="13"/><line x1="17" y1="27" x2="17" y2="32"/><line x1="23" y1="27" x2="23" y2="32"/></svg></div>
+          <div class="cc-num" style="color:var(--blue)">725 Mld$</div>
+          <div class="cc-name">Capex Big Tech<br><span>Infrastrutture AI</span></div>
+          <div class="cc-desc">Google, Amazon, Microsoft e Meta investiranno 725 miliardi $ in AI nel 2026. +77% rispetto al 2025.</div>
+          <div class="cc-src">Financial Times / Tom's Hardware, maggio 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 1: CINA -->
+    <div class="car-slide" data-slide="1">
+      <div class="car-deck">
+        <div class="car-card" style="--ci:0">
+          <div class="cc-ico" style="color:#BFEF2A"><svg width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="#8BAF00" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="15"/><ellipse cx="20" cy="20" rx="6" ry="15"/><line x1="5" y1="20" x2="35" y2="20"/><path d="M7 13 Q20 17 33 13"/><path d="M7 27 Q20 23 33 27"/></svg></div>
+          <div class="cc-num" style="color:var(--ink)">322 Mld$</div>
+          <div class="cc-name">Mercato digitale<br><span>Trasformazione 2026</span></div>
+          <div class="cc-desc">Il mercato della trasformazione digitale cinese vale 322,8 miliardi $ nel 2026, con crescita annua del 14% fino al 2031.</div>
+          <div class="cc-src">Mordor Intelligence, 2026</div>
+        </div>
+        <div class="car-card" style="--ci:1">
+          <div class="cc-ico" style="color:#0B0B8C"><svg width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="#0B0B8C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="7" width="32" height="8" rx="2"/><rect x="4" y="18" width="32" height="8" rx="2"/><rect x="4" y="29" width="32" height="8" rx="2"/><circle cx="31" cy="11" r="1.5" fill="#0B0B8C" stroke="none"/><circle cx="31" cy="22" r="1.5" fill="#0B0B8C" stroke="none"/><circle cx="31" cy="33" r="1.5" fill="#0B0B8C" stroke="none"/></svg></div>
+          <div class="cc-num" style="color:var(--blue)">+34%</div>
+          <div class="cc-name">Alibaba Cloud<br><span>AI & Cloud</span></div>
+          <div class="cc-desc">Alibaba Cloud cresce del 34% YoY nel 2025 grazie all'AI. Domina il cloud cinese con il 47% di market share.</div>
+          <div class="cc-src">Alibaba Group Annual Report / ainvest.com</div>
+        </div>
+        <div class="car-card" style="--ci:2">
+          <div class="cc-ico" style="color:#BFEF2A"><svg width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="#8BAF00" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><polyline points="4,30 14,18 22,24 36,9"/><polyline points="27,9 36,9 36,18"/></svg></div>
+          <div class="cc-num" style="color:var(--ink)">33 Mld$</div>
+          <div class="cc-name">Export digitale<br><span>Surplus 2025</span></div>
+          <div class="cc-desc">Il surplus commerciale digitale cinese ha più che raddoppiato nel 2025. ByteDance, Tencent e Alibaba guidano la spinta globale.</div>
+          <div class="cc-src">Bloomberg / State Administration of Foreign Exchange, feb. 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: ITALY -->
+    <div class="car-slide" data-slide="2">
+      <div class="car-deck">
+        <div class="car-card" style="--ci:0">
+          <div class="cc-ico" style="color:#0B0B8C"><svg width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="#0B0B8C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M14 5 L5 13 L10 18 L10 35 L30 35 L30 18 L35 13 L26 5 C24 9 22 10 20 10 C18 10 16 9 14 5Z"/></svg></div>
+          <div class="cc-num" style="color:var(--blue)">+11,5%</div>
+          <div class="cc-name">Brunello Cucinelli<br><span>Lusso & AI</span></div>
+          <div class="cc-desc">1,4 miliardi € di fatturato nel 2025. A gennaio 2026 lanciato e-commerce basato su AI (Solomei). Previsione +10% per il 2026.</div>
+          <div class="cc-src">Brunello Cucinelli Investor Relations, gennaio 2026</div>
+        </div>
+        <div class="car-card" style="--ci:1">
+          <div class="cc-ico" style="color:#BFEF2A"><svg width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="#8BAF00" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M3 6 L8 6 L14 26 L32 26"/><path d="M10 12 L36 12 L33 22 L13 22"/><circle cx="16" cy="31" r="2.5"/><circle cx="28" cy="31" r="2.5"/></svg></div>
+          <div class="cc-num" style="color:var(--ink)">62,3 Mld€</div>
+          <div class="cc-name">E-commerce Italia<br><span>Retail digitale 2025</span></div>
+          <div class="cc-desc">+7% rispetto al 2024. Gli investimenti digitali dei retailer salgono al 4,7% del fatturato, dal 3,2% del 2024.</div>
+          <div class="cc-src">Osservatori eCommerce B2c & Retail, PoliMI, febbraio 2026</div>
+        </div>
+        <div class="car-card" style="--ci:2">
+          <div class="cc-ico" style="color:#0B0B8C"><svg width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="#0B0B8C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="24" width="7" height="11" rx="1.5"/><rect x="16" y="16" width="7" height="19" rx="1.5"/><rect x="27" y="8" width="7" height="27" rx="1.5"/><line x1="3" y1="37" x2="37" y2="37"/></svg></div>
+          <div class="cc-num" style="color:var(--blue)">92 Mld€</div>
+          <div class="cc-name">Mercato digitale IT<br><span>ICT & Software 2026</span></div>
+          <div class="cc-desc">Il mercato digitale italiano raggiungerà quasi 92 miliardi € nel 2026, con crescita media annua del 4,5%.</div>
+          <div class="cc-src">Anitec-Assinform / Innovation Post</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: PUGLIA -->
+    <div class="car-slide" data-slide="3">
+      <div class="car-deck">
+        <div class="car-card" style="--ci:0; --card-bg:rgba(191,239,42,0.06)">
+          <div class="cc-ico" style="color:#BFEF2A"><svg width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="#8BAF00" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="5" width="24" height="31" rx="1.5"/><rect x="13" y="11" width="5" height="5" rx="1"/><rect x="22" y="11" width="5" height="5" rx="1"/><rect x="13" y="21" width="5" height="5" rx="1"/><rect x="22" y="21" width="5" height="5" rx="1"/><rect x="17" y="29" width="6" height="7" rx="1"/></svg></div>
+          <div class="cc-num" style="color:var(--blue)">68%</div>
+          <div class="cc-name">Imprese pugliesi<br><span>Digitalizzazione base</span></div>
+          <div class="cc-desc">Oltre il 68% delle imprese pugliesi ha raggiunto una base di digitalizzazione, allineandosi alle medie nazionali ed europee.</div>
+          <div class="cc-src">PwC Italia / Industria Italiana, marzo 2026</div>
+        </div>
+        <div class="car-card" style="--ci:1; --card-bg:rgba(191,239,42,0.06)">
+          <div class="cc-ico" style="color:#0B0B8C"><svg width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="#0B0B8C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="15"/><path d="M26 14 C24 12 22 11 20 11 C14 11 10 15 10 20 C10 25 14 29 20 29 C22 29 24 28 26 26"/><line x1="8" y1="18" x2="22" y2="18"/><line x1="8" y1="22" x2="22" y2="22"/></svg></div>
+          <div class="cc-num" style="color:var(--blue)">36,2%</div>
+          <div class="cc-name">PMI pugliesi<br><span>Budget digitale in crescita</span></div>
+          <div class="cc-desc">Il 36,2% prevede di aumentare il budget digitale nel 2025, contro una media nazionale del 30,1%.</div>
+          <div class="cc-src">ilikepuglia.it / Regione Puglia, novembre 2025</div>
+        </div>
+        <div class="car-card" style="--ci:2; --card-bg:rgba(191,239,42,0.06)">
+          <div class="cc-ico" style="color:#BFEF2A"><svg width="36" height="36" viewBox="0 0 40 40" fill="none" stroke="#8BAF00" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M20 4 C20 4 30 8 30 22 L25 27 L15 27 L10 22 C10 8 20 4 20 4Z"/><circle cx="20" cy="17" r="3"/><path d="M15 27 L12 35 L17 31 L20 35 L23 31 L28 35 L25 27"/></svg></div>
+          <div class="cc-num" style="color:var(--blue)">1.410</div>
+          <div class="cc-name">Start-up Puglia<br><span>Ecosistema innovazione</span></div>
+          <div class="cc-desc">La Puglia conta 1.410 start-up innovative nel 2026 con Digital Innovation Hub, Start Cup Puglia e Punti Impresa Digitale.</div>
+          <div class="cc-src">PwC Italia / Industria Italiana, marzo 2026</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /car-stage -->
+
+  <!-- editorial pagination -->
+  <div class="car-footer">
+    <div class="car-counter"><span id="carCur">01</span> <span class="car-sep">—</span> <span class="car-tot">04</span></div>
+    <div class="car-progress"><div class="car-bar" id="carBar"></div></div>
+    <div class="car-arrows">
+      <button class="car-arrow" id="carPrev" aria-label="Precedente">←</button>
+      <button class="car-arrow" id="carNext" aria-label="Successivo">→</button>
+    </div>
+  </div>
+
+</section>
+
+<!-- PAUSE QUOTE — dark breathing moment -->
+<div class="pause-quote">
+  <p class="quote-sub reveal">Il dato che cambia tutto</p>
+  <p class="quote-text reveal">Le aziende ad alta intensità digitale<br>fatturano il <span>152% in più</span><br>per addetto.</p>
+  <div class="quote-num">152%</div>
+</div>
+
+<div class="div-lime"></div>
+
+<!-- BENEFITS -->
+<section class="sec sec-bg-white">
+  <div class="sec-inner">
+    <span class="eyebrow reveal">Cosa ottieni</span>
+    <h2 class="h2 reveal">Un'analisi concreta,<br><em>non un quiz generico.</em></h2>
+    <div class="benefit-grid">
+      <div class="benefit-card reveal"><div class="benefit-num">01</div><div class="benefit-title">Mappatura su 7 aree chiave</div><div class="benefit-desc">Strategia, processi, dati, tecnologie, competenze, cultura e mercato. Una fotografia precisa del tuo posizionamento.</div></div>
+      <div class="benefit-card reveal d1"><div class="benefit-num">02</div><div class="benefit-title">Score con radar visivo</div><div class="benefit-desc">Visualizza punti di forza e aree critiche. Confrontati con il benchmark di settore in tempo reale.</div></div>
+      <div class="benefit-card reveal d2"><div class="benefit-num">03</div><div class="benefit-title">Roadmap di evoluzione</div><div class="benefit-desc">Indicazioni strategiche per passare al livello successivo in modo strutturato e misurabile.</div></div>
+      <div class="benefit-card reveal"><div class="benefit-num">04</div><div class="benefit-title">2 priorità operative immediate</div><div class="benefit-desc">Le 2 aree su cui agire subito per il massimo impatto sul fatturato nel breve termine.</div></div>
+      <div class="benefit-card reveal d1"><div class="benefit-num">05</div><div class="benefit-title">2 punti di forza</div><div class="benefit-desc">Scopri cosa stai già facendo bene e come capitalizzarlo per distanziare la concorrenza.</div></div>
+      <div class="benefit-card reveal d2"><div class="benefit-num">06</div><div class="benefit-title">Risultati in 3 minuti</div><div class="benefit-desc">Nessun form, nessun account. Il report è disponibile subito al termine del questionario.</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="div-blue"></div>
+
+<!-- HOW -->
+<section class="sec sec-bg-pale">
+  <div class="sec-inner" style="text-align:center;">
+    <span class="eyebrow reveal">Come funziona</span>
+    <h2 class="h2 reveal" style="margin-bottom:0.75rem;">Tre passi.<br>Tre minuti.</h2>
+    <p class="reveal" style="font-size:0.85rem;color:var(--ink-soft);margin-bottom:4rem;font-weight:300;">Un ciclo continuo di miglioramento.</p>
+
+    <div class="how-grid reveal">
+      <div style="text-align:right;">
+        <div class="step-dot dot-blue" style="margin-left:auto;">01</div>
+        <div class="step-title">Rispondi al questionario</div>
+        <div class="step-desc">18 domande brevi sulle 7 aree di maturità digitale. Nessuna competenza tecnica richiesta.</div>
+      </div>
+      <div class="how-circ" style="position:relative;width:260px;height:260px;flex-shrink:0;">
+        <svg viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;" aria-hidden="true">
+          <circle cx="130" cy="130" r="118" fill="none" stroke="var(--blue)" stroke-width="1" stroke-dasharray="4 8" opacity="0.10"/>
+          <circle cx="130" cy="130" r="88" fill="none" stroke="var(--border)" stroke-width="1.5"/>
+          <path d="M 130,42 A 88,88 0 0,1 206,174" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" opacity="0.30"/>
+          <polygon points="206,174 196,167 203,158" fill="var(--blue)" opacity="0.35"/>
+          <path d="M 206,174 A 88,88 0 0,1 54,174" fill="none" stroke="var(--lime)" stroke-width="2" stroke-linecap="round" opacity="0.75"/>
+          <polygon points="54,174 60,161 68,171" fill="var(--lime)" opacity="0.90"/>
+          <path d="M 54,174 A 88,88 0 0,1 130,42" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" opacity="0.30"/>
+          <polygon points="130,42 121,55 139,55" fill="var(--blue)" opacity="0.35"/>
+          <circle cx="130" cy="130" r="34" fill="rgba(11,11,140,0.03)" stroke="rgba(11,11,140,0.08)" stroke-width="1"/>
+          <ellipse cx="130" cy="130" rx="10" ry="17" fill="rgba(191,239,42,0.16)" transform="rotate(30,130,130)"/>
+          <ellipse cx="130" cy="130" rx="10" ry="17" fill="rgba(11,11,140,0.07)" transform="rotate(150,130,130)"/>
+          <ellipse cx="130" cy="130" rx="10" ry="17" fill="rgba(191,239,42,0.10)" transform="rotate(270,130,130)"/>
+          <circle cx="130" cy="130" r="3" fill="var(--blue)" opacity="0.35"/>
+        </svg>
+      </div>
+      <div style="text-align:left;display:flex;flex-direction:column;gap:2.5rem;">
+        <div>
+          <div class="step-dot dot-lime">02</div>
+          <div class="step-title">Ricevi il tuo radar</div>
+          <div class="step-desc">Score immediato su ogni area con confronto al benchmark medio delle aziende italiane.</div>
+        </div>
+        <div>
+          <div class="step-dot dot-blue">03</div>
+          <div class="step-title">Leggi la roadmap</div>
+          <div class="step-desc">Azioni concrete per crescere. Il ciclo ricomincia — sempre più in alto.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="div-lime"></div>
+
+<!-- CTA -->
+<section class="cta-sec" id="test">
+  <h2 class="cta-title reveal">Il tuo potenziale<br><em>digitale ti aspetta.</em></h2>
+  <p class="cta-micro reveal">Scoprilo in 3 minuti. È gratuito.</p>
+  <div class="cta-checks reveal">
+    <div class="cta-check">Score immediato su 7 aree</div>
+    <div class="cta-check">Benchmark di settore incluso</div>
+    <div class="cta-check">Roadmap personalizzata</div>
+    <div class="cta-check">Nessuna registrazione</div>
+  </div>
+  <a href="https://versumdesign.it/digital-maturity-test" class="cta-btn reveal">Inizia l'autovalutazione &nbsp;→</a>
+  <p class="cta-reassure reveal">Radici solide, visione digitale — PICS²</p>
+</section>
+
+<footer>
+  <p>© 2025 PICS²</p>
+  <p>Dati: Osservatorio eCommerce B2c Netcomm – Politecnico di Milano 2024 · Eurostat DESI 2024 · Il Sole24Ore / Digital Intensity Index 2024</p>
+</footer>
+
+<script>
+// Nav glass on scroll
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 50);
+}, { passive: true });
+
+// Cinematic scroll reveal
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.10, rootMargin: '0px 0px -30px 0px' });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// Parallax orbs — mouse reaction
+document.addEventListener('mousemove', e => {
+  const x = (e.clientX / window.innerWidth  - 0.5) * 40;
+  const y = (e.clientY / window.innerHeight - 0.5) * 40;
+  document.querySelectorAll('.orb').forEach((o, i) => {
+    const f = i === 0 ? 1 : -0.65;
+    o.style.transform = `translate(${x*f}px,${y*f}px)`;
+  });
+}, { passive: true });
+</script>
+
+<script id="carScript">
+(function() {
+  const tabs   = document.querySelectorAll('.car-tab');
+  const slides = document.querySelectorAll('.car-slide');
+  const bar    = document.getElementById('carBar');
+  const cur    = document.getElementById('carCur');
+  const prev   = document.getElementById('carPrev');
+  const next   = document.getElementById('carNext');
+  const total  = slides.length;
+  let active   = 0;
+  let busy     = false;
+  const labels = ['01','02','03','04'];
+
+  function goTo(idx) {
+    if (idx === active || busy) return;
+    busy = true;
+
+    const outSlide = slides[active];
+    const inSlide  = slides[idx];
+
+    // Set the stage height to current slide before transition
+    const stage = document.getElementById('carStage');
+    stage.style.minHeight = outSlide.offsetHeight + 'px';
+
+    // Exit current: slide left
+    outSlide.classList.add('exit-left');
+    outSlide.classList.remove('active');
+
+    // Enter new: comes from right, goes to position
+    inSlide.classList.add('active');
+
+    // Update UI
+    active = idx;
+    tabs.forEach((t, i) => t.classList.toggle('active', i === active));
+    cur.textContent = labels[active];
+    bar.style.width = ((active + 1) / total * 100) + '%';
+    prev.disabled = active === 0;
+    next.disabled = active === total - 1;
+
+    // Clean up after transition
+    setTimeout(() => {
+      outSlide.classList.remove('exit-left');
+      stage.style.minHeight = '';
+      busy = false;
+    }, 700);
+  }
+
+  tabs.forEach((tab, i) => tab.addEventListener('click', () => goTo(i)));
+  prev.addEventListener('click', () => { if (active > 0) goTo(active - 1); });
+  next.addEventListener('click', () => { if (active < total - 1) goTo(active + 1); });
+
+  // swipe support
+  let sx = 0;
+  const stage = document.getElementById('carStage');
+  stage.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
+  stage.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 50) {
+      dx < 0 ? goTo(Math.min(active + 1, total - 1)) : goTo(Math.max(active - 1, 0));
+    }
+  }, { passive: true });
+
+  // Init
+  prev.disabled = true;
+  next.disabled = false;
+  bar.style.width = (1 / total * 100) + '%';
+})();
+</script>
+
+</body>
+</html>
