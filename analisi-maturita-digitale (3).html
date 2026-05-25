@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Analisi Maturità Digitale — PICS²</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;900&family=Inter:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<!-- wp:html -->
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -616,8 +610,8 @@ footer p { font-size: 0.68rem; color: var(--ink-light); line-height: 1.6; }
   .car-tab span { display: none; }
 }
 </style>
-</head>
-<body>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;900&family=Inter:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 
 <!-- NAV -->
 <nav id="nav">
@@ -1022,5 +1016,95 @@ document.addEventListener('mousemove', e => {
 })();
 </script>
 
-</body>
-</html>
+<script>
+// Nav glass on scroll
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 50);
+}, { passive: true });
+
+// Cinematic scroll reveal
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.10, rootMargin: '0px 0px -30px 0px' });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// Parallax orbs — mouse reaction
+document.addEventListener('mousemove', e => {
+  const x = (e.clientX / window.innerWidth  - 0.5) * 40;
+  const y = (e.clientY / window.innerHeight - 0.5) * 40;
+  document.querySelectorAll('.orb').forEach((o, i) => {
+    const f = i === 0 ? 1 : -0.65;
+    o.style.transform = `translate(${x*f}px,${y*f}px)`;
+  });
+}, { passive: true });
+(function() {
+  const tabs   = document.querySelectorAll('.car-tab');
+  const slides = document.querySelectorAll('.car-slide');
+  const bar    = document.getElementById('carBar');
+  const cur    = document.getElementById('carCur');
+  const prev   = document.getElementById('carPrev');
+  const next   = document.getElementById('carNext');
+  const total  = slides.length;
+  let active   = 0;
+  let busy     = false;
+  const labels = ['01','02','03','04'];
+
+  function goTo(idx) {
+    if (idx === active || busy) return;
+    busy = true;
+
+    const outSlide = slides[active];
+    const inSlide  = slides[idx];
+
+    // Set the stage height to current slide before transition
+    const stage = document.getElementById('carStage');
+    stage.style.minHeight = outSlide.offsetHeight + 'px';
+
+    // Exit current: slide left
+    outSlide.classList.add('exit-left');
+    outSlide.classList.remove('active');
+
+    // Enter new: comes from right, goes to position
+    inSlide.classList.add('active');
+
+    // Update UI
+    active = idx;
+    tabs.forEach((t, i) => t.classList.toggle('active', i === active));
+    cur.textContent = labels[active];
+    bar.style.width = ((active + 1) / total * 100) + '%';
+    prev.disabled = active === 0;
+    next.disabled = active === total - 1;
+
+    // Clean up after transition
+    setTimeout(() => {
+      outSlide.classList.remove('exit-left');
+      stage.style.minHeight = '';
+      busy = false;
+    }, 700);
+  }
+
+  tabs.forEach((tab, i) => tab.addEventListener('click', () => goTo(i)));
+  prev.addEventListener('click', () => { if (active > 0) goTo(active - 1); });
+  next.addEventListener('click', () => { if (active < total - 1) goTo(active + 1); });
+
+  // swipe support
+  let sx = 0;
+  const stage = document.getElementById('carStage');
+  stage.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
+  stage.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 50) {
+      dx < 0 ? goTo(Math.min(active + 1, total - 1)) : goTo(Math.max(active - 1, 0));
+    }
+  }, { passive: true });
+
+  // Init
+  prev.disabled = true;
+  next.disabled = false;
+  bar.style.width = (1 / total * 100) + '%';
+})();
+</script>
+<!-- /wp:html -->
